@@ -1,0 +1,67 @@
+/*                  */                                                        
+/* LRFULL_TABLE.FMT */                                                        
+/*                  */                                                        
+OBJECT                  = COLUMN                                              
+     NAME               = FILE_ID                                             
+     DATA_TYPE          = CHARACTER                                           
+     START_BYTE         = 1                                                   
+     BYTES              = 8                                                   
+     DESCRIPTION        = "'CORPWS01' for the file id."                       
+END_OBJECT              = COLUMN                                              
+                                                                              
+OBJECT                  = COLUMN                                              
+     NAME               = RECORD_LENGTH                                       
+     DATA_TYPE          = MSB_UNSIGNED_INTEGER                                
+     START_BYTE         = 9                                                   
+     BYTES              = 4                                                   
+     DESCRIPTION        = "The length of each record in bytes."               
+END_OBJECT              = COLUMN                                              
+                                                                              
+OBJECT                  = COLUMN                                              
+     NAME               = RECORDS                                             
+     DATA_TYPE          = MSB_UNSIGNED_INTEGER                                
+     START_BYTE         = 13                                                  
+     BYTES              = 4                                                   
+     DESCRIPTION        = "The total number of records."                      
+END_OBJECT              = COLUMN                                              
+                                                                              
+OBJECT                  = COLUMN                                              
+     NAME               = RECEIVER_TYPE                                       
+     DATA_TYPE          = MSB_UNSIGNED_INTEGER                                
+     START_BYTE         = 17                                                  
+     BYTES              = 4                                                   
+     DESCRIPTION        = "Logical RPWS Instrument ID Number."                
+END_OBJECT              = COLUMN                                              
+                                                                              
+OBJECT                  = COLUMN                                              
+     NAME               = MINI_PACKET_HEADER                                  
+     DATA_TYPE          = MSB_BIT_STRING                                      
+     START_BYTE         = 25                                                  
+     BYTES              = 24                                                  
+     DESCRIPTION        = "The mini-packet header which is representative     
+                           for the data contained in the file."               
+END_OBJECT              = COLUMN                                              
+                                                                              
+OBJECT                  = COLUMN                                              
+     NAME               = SCET                                                
+     DATA_TYPE          = CHARACTER                                           
+     START_BYTE         = 49                                                  
+     BYTES              = 16                                                  
+     DESCRIPTION        = "The standard JPL spacecraft event time description:
+                           yyyy-doyThh:mm, seconds and milliseconds are       
+                           assumed zero.  This is half of the SCLK/SCET       
+                           pair produce by the SPICE kernel for the beginning 
+                           of each day."                                      
+END_OBJECT              = COLUMN                                              
+                                                                              
+OBJECT                  = COLUMN                                              
+     NAME               = SCLK                                                
+     COLUMN_NUMBER      = 5                                                   
+     DATA_TYPE          = CHARACTER                                           
+     START_BYTE         = 65                                                  
+     BYTES              = 16                                                  
+     DESCRIPTION        = "The standard JPL spacecraft clock time description:
+                           ssssssssss.fff.  This is half of the SCLK/SCET     
+                           pair produce by the SPICE kernel for the beginning 
+                           of each day."                                      
+END_OBJECT              = COLUMN                                              

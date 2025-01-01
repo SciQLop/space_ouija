@@ -9,18 +9,26 @@ import std.time;
 std::core::set_endian(std::mem::Endian::Big);
 
 fn format_time(auto seconds) {
-    
-	return "hello";
+    // not sure why but it's off by 1 hour
+        return std::time::format(std::time::to_utc(seconds - 378694800 + 3600), "%Y:%m:%d %H:%M:%S");
 };
 
-struct reccord {
-    u8 data[912];
+struct LRFULL_TABLE {
+    char FILE_ID[8];
+    u32 RECORD_LENGTH;
+    u32 RECORDS;
+    u32 RECEIVER_TYPE;
+    u32 unused;
+    char MINI_PACKET_HEADER[24];
+    char SCET[16];
+    char SCLK[16];
+    u8 extra_space[RECORD_LENGTH-$];
 };
 
 struct RPWS_SCLK {
-    u32 SCLK_SECOND[[format("test_format")]];
+    u32 SCLK_SECOND[[format("format_time")]];
     u8 SCLK_PARTITION;
-    u8 SCLK_FINE;  
+    u8 SCLK_FINE;
 };
 
 struct  RPWS_SCET {
@@ -56,7 +64,7 @@ enum ACTIVITY_FLAG: bool {
 };
 
 enum SENSOR_NUMBER_t: u8 {
-  Ex=0,   
+  Ex=0,
   Eu=1,
   Ev=2,
   Ew=3,
@@ -72,9 +80,9 @@ bitfield LRFC_DATA_QUALITY {
     ACTIVITY_FLAG HFR_SOUNDER_ACTIVE :1;
     ACTIVITY_FLAG LP_RAW_SWEEP_ACTIVE :1;
     bool GROUND_PRODUCED_DATA :1;
-    _dummy :24;
+    dummy :24[[hidden]];
     SENSOR_NUMBER_t SENSOR_NUMBER :4;
-    
+
 };
 
 struct spectral_density_table_reccord {
@@ -84,7 +92,7 @@ struct spectral_density_table_reccord {
 };
 
 struct file {
-    reccord header;
+    LRFULL_TABLE header;
     time_table_reccord tt;
     frequency_table_reccord ft;
     spectral_density_table_reccord values[while(!std::mem::eof())];

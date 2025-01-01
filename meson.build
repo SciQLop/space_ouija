@@ -1,12 +1,12 @@
 project(
   'space_ouija',
   'cpp','c',
-  meson_version: '>= 0.64.0',
+  meson_version: '>= 1.2.0',
   version : run_command('scripts/version.py',
                         capture:true,
                         env:{'SRC_ROOT':meson.project_source_root()}
                         ).stdout().strip() ,
-  default_options : ['warning_level=3', 'cpp_std=c++17', 'default_library=static', 'buildtype=release'],
+  default_options : ['warning_level=3', 'cpp_std=c++20', 'default_library=static', 'buildtype=release'],
   license : 'GPL3'
 )
 
@@ -16,13 +16,15 @@ if get_option('buildtype').contains('debug')
 endif
 
 
-conf_data = configuration_data()
-conf_data.set_quoted('-DSPACE_OUIJA_VERSION', meson.project_version())
-
-
 pybind11_dep = dependency('pybind11')
 hedley_dep = dependency('hedley')
 fmt_dep = dependency('fmt')
+cpp_utils = dependency('cpp_utils', required : true)
+
+cpp = meson.get_compiler('cpp')
+if('clang'==cpp.get_id())
+    add_global_arguments('-fsized-deallocation', language : 'cpp')
+endif
 
 if build_machine.system() == 'windows'
     link_args = ['-static-libstdc++','-static-libgcc','-static']
@@ -32,6 +34,12 @@ else
     link_args = []
 endif
 
+space_ouija_extra_files = files(
+    'pyproject.toml',
+    'README.md',
+    '.bumpversion.cfg',
+    'version.txt'
+)
 
 space_ouija_doc_extra_files =  files(
   'docs/conf.py',
@@ -45,6 +53,7 @@ space_ouija_doc_extra_files =  files(
   'docs/examples/index.rst'
 )
 
+subdir('space_ouija')
 
 summary({
   'C': meson.get_compiler('c').cmd_array(),
