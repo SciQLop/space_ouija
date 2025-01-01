@@ -1,0 +1,90 @@
+/**********************************************************************/
+/* RPWS_SCLK_SCET.FMT                                                 */
+/* describes the structure of the spacecraft clock and spacecraft     */
+/* event time objects common to many Cassini RPWS archive files.      */
+/**********************************************************************/
+
+OBJECT                  = COLUMN
+  NAME                    = SCLK_SECOND
+  DATA_TYPE               = MSB_UNSIGNED_INTEGER
+  START_BYTE              = 1
+  BYTES                   = 4
+  DESCRIPTION             = "Spacecraft clock counter increments each
+    second, beginning at approximately 1958-01-01T00:00:00Z."
+END_OBJECT              = COLUMN
+
+OBJECT                  = COLUMN
+  NAME                    = SCLK_PARTITION
+  DATA_TYPE               = MSB_UNSIGNED_INTEGER
+  START_BYTE              = 5
+  BYTES                   = 1
+  VALID_MINIMUM           = 0
+  VALID_MAXIMUM           = 255
+  DESCRIPTION             = "Spacecraft clock partition.
+    A value of ZERO or ONE indicates the first partition
+    (i.e. the spacecraft clock has not been reset)."
+END_OBJECT              = COLUMN
+
+OBJECT                  = COLUMN
+  NAME                    = SCLK_FINE
+  DATA_TYPE               = MSB_UNSIGNED_INTEGER
+  START_BYTE              = 6
+  BYTES                   = 1
+  VALID_MINIMUM           = 0
+  VALID_MAXIMUM           = 255
+  DESCRIPTION             = "Spacecraft clock modulo 256 counter
+    increments 256 times per second.  Since the RTI increments from
+    0 through 7 in this same interval, SCLK_FINE / 32 yields the
+    RTI count.
+    For RPWS, SCLK_FINE is maintained within the instrument to an
+    accuracy of one RTI period.  Time tags should occur only with
+    the following values for SCLK_FINE : 0, 32, 64, 96, 128, 160,
+    192, and 224"
+END_OBJECT              = COLUMN
+
+/**********************************************************************/
+/*  Note about archive product time-tags:                             */
+/*      We should be masking (removing) the lower 5 bits              */
+/*      of SCLK_FINE prior to using SPICE to calculate SCET.          */
+/*                                                                    */
+/*      RPWS time keeping occurs only with a resolution of the        */
+/*      RTI period (ignore the sub-RTI counter we use with the        */
+/*      WBR, the sub-RTI timing is included in the WBR minipacket).   */
+/*      Both HRP and LRP use bit 0 to indicate a CDS clock            */
+/*      update has not occurred in the last second (should always     */
+/*      be clear on LRP and always set on HRP).                       */
+/*      Both LRP and HRP use bits 1-4 to hold a CDS packet count.     */
+/*      LRP sets this counter to 0 while HRP start this count         */
+/*      at 1, incrementing with each packet that is processed         */
+/*      within any RTI period (in other words, HRP resets this        */
+/*      counter to 1 when the RTI interrupt occurs).                  */
+/*                                                                    */
+/*      This has the side-effect that all SCLK values delivered by    */
+/*      RPWS are unique.  This also makes query by SCLK or SCET       */
+/*      return data in an unambiguous order.                          */
+/*                                                                    */
+/*      BUT!!! It is necessary to clear bits 0-4 of the SCLK_FINE     */
+/*      in order to get back to the intended (correct) time.          */
+/**********************************************************************/
+
+OBJECT                  = COLUMN
+  NAME                    = SCET_DAY
+  DATA_TYPE               = MSB_UNSIGNED_INTEGER
+  START_BYTE              = 7
+  BYTES                   = 2
+  DESCRIPTION             = "Spacecraft event time days since
+    1958-01-01T00:00:00Z"
+END_OBJECT              = COLUMN
+
+OBJECT                  = COLUMN
+  NAME                    = SCET_MILLISECOND
+  DATA_TYPE               = MSB_UNSIGNED_INTEGER
+  START_BYTE              = 9
+  BYTES                   = 4
+  VALID_MINIMUM           = 0
+  VALID_MAXIMUM           = 86401999
+  DESCRIPTION             = "Spacecraft event time millisecond
+    of day allowing for up to two leap seconds."
+END_OBJECT              = COLUMN
+
+/* END OF RPWS_SCLK_SCET.FMT */

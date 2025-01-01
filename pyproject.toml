@@ -1,0 +1,36 @@
+[build-system]
+build-backend = 'mesonpy'
+requires = ['meson-python>=0.14.0', 'numpy']
+
+[project]
+name = "space_ouija"
+description="A toolkit to read really old space data files"
+authors = [{name="Alexis Jeandet", email="alexis.jeandet@member.fsf.org"}]
+summary = "A toolkit to read really old space data files"
+requires-python=">=3.9"
+license = {file="COPYING"}
+readme = "README.md"
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Natural Language :: English",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+]
+dependencies = ['numpy', 'pyyaml']
+dynamic = [
+  'version',
+]
+[project.urls]
+homepage = "https://github.com/SciQLop/space_ouija"
+documentation = "https://space_ouija.readthedocs.io/en/latest/"
+repository = "https://github.com/SciQLop/space_ouija"
+
+[tool.meson-python.args]
+install = ['--tags=runtime,python-runtime']
+setup = ['-Doptimization=3']
