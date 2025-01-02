@@ -58,7 +58,34 @@ space_ouija_doc_extra_files =  files(
 
 subdir('space_ouija')
 
-summary({
-  'C': meson.get_compiler('c').cmd_array(),
-  'C++': meson.get_compiler('cpp').cmd_array()
-        }, section: 'Compilers')
+c_compiler = meson.get_compiler('c')
+cpp_compiler = meson.get_compiler('cpp')
+
+summary(
+  {
+  'compiler':c_compiler.cmd_array(),
+  'version':c_compiler.version(),
+  'sizeof(void*)':cpp.sizeof('int*'),
+  },
+  section: 'C compiler'
+)
+
+summary(
+  {
+  'compiler':cpp_compiler.cmd_array(),
+  'version':cpp_compiler.version(),
+  'sizeof(void*)':cpp.sizeof('int*'),
+  },
+  section: 'C++ compiler'
+)
+
+summary(
+  {
+  'cpp_utils':cpp_utils.version(),
+  'hedley':hedley_dep.version(),
+  'fmt':fmt_dep.version(),
+  'pybind11':pybind11_dep.version(),
+  },
+  section: 'Dependencies'
+)
+
