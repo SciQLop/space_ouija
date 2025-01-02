@@ -15,16 +15,17 @@ if get_option('buildtype').contains('debug')
     add_project_arguments('-DSPACE_OUIJA_HEDLEY', language : ['cpp'])
 endif
 
+cpp = meson.get_compiler('cpp')
+if('clang'==cpp.get_id())
+    add_project_arguments('-fsized-deallocation', language : 'cpp')
+endif
 
 pybind11_dep = dependency('pybind11')
 hedley_dep = dependency('hedley')
 fmt_dep = dependency('fmt')
-cpp_utils = dependency('cpp_utils', required : true)
+cpp_utils = dependency('cpp_utils', required : true,  default_options : ['cpp_std=c++20'])
 
-cpp = meson.get_compiler('cpp')
-if('clang'==cpp.get_id())
-    add_global_arguments('-fsized-deallocation', language : 'cpp')
-endif
+
 
 if build_machine.system() == 'windows'
     link_args = ['-static-libstdc++','-static-libgcc','-static']
@@ -38,7 +39,9 @@ space_ouija_extra_files = files(
     'pyproject.toml',
     'README.md',
     '.bumpversion.cfg',
-    'version.txt'
+    'version.txt',
+    '.github/workflows/CI.yml',
+    '.github/workflows/tests-with-coverage.yml'
 )
 
 space_ouija_doc_extra_files =  files(

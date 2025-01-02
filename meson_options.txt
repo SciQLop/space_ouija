@@ -1,0 +1,2 @@
+option('with_tests', type : 'boolean', value : false, description : 'Disable tests build.')
+option('with_benchmarks', type : 'boolean', value : false, description : 'Disable benchmarks build.')
