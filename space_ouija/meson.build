@@ -17,7 +17,15 @@ conf_data.set_quoted('SPACE_OUIJA_VERSION', meson.project_version())
 configure_file(output : 'space_ouija_config.h',
                configuration : conf_data)
 
-space_ouija_headers = files()
+space_ouija_headers = files(
+    'ouija_boards/cassini/rpws.hpp',
+    'ouija_boards/cassini/RPWS_LOW_RATE_FULL_MFR0.hpp',
+)
+
+space_ouija_dep = declare_dependency(
+    include_directories : include_directories('.'),
+    dependencies : [cpp_utils, fmt_dep]
+)
 
 _space_ouija = python3.extension_module('_space_ouija', 'space_ouija.cpp',
                          dependencies: [cpp_utils, fmt_dep, pybind11_dep, python3.dependency()],

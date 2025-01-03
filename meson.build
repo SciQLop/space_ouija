@@ -57,6 +57,9 @@ space_ouija_doc_extra_files =  files(
 )
 
 subdir('space_ouija')
+if get_option('with_tests')
+    subdir('tests')
+endif
 
 c_compiler = meson.get_compiler('c')
 cpp_compiler = meson.get_compiler('cpp')
