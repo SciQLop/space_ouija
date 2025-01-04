@@ -23,27 +23,4 @@
 /*-- Author : Alexis Jeandet
 -- Mail : alexis.jeandet@member.fsf.org
 ----------------------------------------------------------------------------*/
-#include <space_ouija_config.h>
 
-
-#include <pybind11/chrono.h>
-#include <pybind11/iostream.h>
-#include <pybind11/numpy.h>
-#include <pybind11/pybind11.h>
-#include <pybind11/stl.h>
-#include <pybind11/stl_bind.h>
-
-#include <fmt/ranges.h>
-
-
-PYBIND11_MODULE(_pycdfpp, m)
-{
-    m.doc() = R"pbdoc(
-        _space_ouija
-        --------
-
-    )pbdoc";
-
-    m.attr("__version__") = SPACE_OUIJA_VERSION;
-
-}

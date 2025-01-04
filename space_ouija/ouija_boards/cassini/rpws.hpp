@@ -35,15 +35,15 @@ template <std::size_t record_size>
 struct LRFULL_TABLE
 {
     using endianness = cpp_utils::endianness::big_endian_t;
-    cpp_utils::serde::static_array<char,8> FILE_ID;
+    cpp_utils::serde::static_array<char, 8> FILE_ID;
     uint32_t RECORD_LENGTH;
     uint32_t RECORDS;
     uint32_t RECEIVER_TYPE;
     uint32_t unused;
-    cpp_utils::serde::static_array<char,24> MINI_PACKET_HEADER;
-    cpp_utils::serde::static_array<char,16> SCET;
-    cpp_utils::serde::static_array<char,16> SCLK;
-    cpp_utils::serde::static_array<char,record_size - 80> extra_space;
+    cpp_utils::serde::static_array<char, 24> MINI_PACKET_HEADER;
+    cpp_utils::serde::static_array<char, 16> SCET;
+    cpp_utils::serde::static_array<char, 16> SCLK;
+    cpp_utils::serde::static_array<char, record_size - 80> extra_space;
 };
 
 struct RPWS_SCLK
@@ -72,4 +72,10 @@ struct RPWS_SCLK_SCET
     RPWS_SCET scet;
 };
 static_assert(cpp_utils::reflexion::composite_size<RPWS_SCLK_SCET>() == 12);
+
+inline uint64_t cassini_time_to_ns_since_epoch(const RPWS_SCLK& sclk, const RPWS_SCET&)
+{
+    uint64_t seconds = static_cast<uint64_t>(sclk.SCLK_SECOND) - 378694800ULL;
+    return (seconds * 1000'000'000) + (sclk.SCLK_FINE * 1000'000'000 / 256);
 }
+} // namespace ouija_boards::cassini::rpws
