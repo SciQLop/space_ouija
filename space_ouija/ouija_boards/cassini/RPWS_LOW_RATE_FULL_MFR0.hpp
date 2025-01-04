@@ -71,10 +71,10 @@ struct SPECTRAL_DENSITY_TABLE
 struct RPWS_LOW_RATE_FULL_MFR0
 {
     using endianness = cpp_utils::endianness::big_endian_t;
-    LRFULL_TABLE<sizeof(TIME_TABLE)> lrfull_table;
+    LRFULL_TABLE<cpp_utils::reflexion::composite_size<TIME_TABLE>()> lrfull_table;
     TIME_TABLE time_table;
     FREQUENCY_TABLE frequency_table;
-    cpp_utils::serde::dynamic_array<0, SPECTRAL_DENSITY_TABLE> spectral_density_table;
+    cpp_utils::serde::dynamic_array<0, SPECTRAL_DENSITY_TABLE> spectral_density_tables;
     inline std::size_t field_size(
         const cpp_utils::serde::dynamic_array<0, SPECTRAL_DENSITY_TABLE>&) const
     {
