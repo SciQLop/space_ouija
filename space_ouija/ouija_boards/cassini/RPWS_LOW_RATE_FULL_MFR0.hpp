@@ -32,6 +32,18 @@
 
 namespace ouija_boards::cassini::rpws
 {
+enum class SENSOR_NUMBER
+{
+    Ex = 0,
+    Eu = 1,
+    Ev = 2,
+    Ew = 3,
+    Bx = 4,
+    By = 5,
+    Bz = 6,
+    Hf = 8,
+    Lp = 11,
+};
 
 struct TIME_TABLE
 {
@@ -55,11 +67,11 @@ struct LRFC_DATA_QUALITY
 {
     using endianness = cpp_utils::endianness::big_endian_t;
     uint32_t value;
-    inline bool VALID_DATA_FLAG() { return value & 0x1; }
-    inline bool HFR_SOUNDER_ACTIVE() { return value & 0x2; }
-    inline bool LP_RAW_SWEEP_ACTIVE() { return value & 0x4; }
-    inline bool GROUND_PRODUCED_DATA() { return value & 0x8; }
-    inline uint8_t SENSOR_NUMBER() { return (value & 0xF000'0000) >> 4; }
+    inline bool VALID_DATA_FLAG() const { return value & (0x1 << 24); }
+    inline bool HFR_SOUNDER_ACTIVE() const { return value & (0x2 << 24); }
+    inline bool LP_RAW_SWEEP_ACTIVE() const { return value & (0x4 << 24); }
+    inline bool GROUND_PRODUCED_DATA() const { return value & (0x8 << 24); }
+    inline SENSOR_NUMBER sensor_number() const { return static_cast<SENSOR_NUMBER>(value & 255); }
 };
 
 struct SPECTRAL_DENSITY_TABLE
@@ -96,37 +108,7 @@ inline auto load_RPWS_LOW_RATE_FULL_MFR0(const std::string& path)
 
 #include <pybind11/numpy.h>
 #include <pybind11/stl.h>
-
-template <typename T>
-concept py_array_interface = requires(T t) {
-    t.data();
-    t.shape();
-    t.strides();
-    t.mutable_data();
-};
-
-template <typename T>
-inline auto py_create_ndarray(auto... shape)
-{
-    namespace py = pybind11;
-    return py::array_t<T>({static_cast<py::ssize_t>(shape)...});
-}
-
-inline void copy_values(const auto& src, py_array_interface auto& dst, uint64_t offset = 0)
-{
-    std::memcpy(dst.mutable_data() + offset, src.data(), src.size() * sizeof(decltype(src[0])));
-}
-
-inline void for_each_block(const auto& src, auto&& f)
-{
-    std::for_each(std::begin(src), std::end(src), f);
-}
-
-inline void transform_values(const auto& src, py_array_interface auto& dst, auto&& f)
-{
-    std::transform(
-        std::begin(src), std::end(src), dst.mutable_data(), std::forward<decltype(f)>(f));
-}
+#include "py_array.hpp"
 
 uint64_t cassini_time_to_ns_since_epoch(const SPECTRAL_DENSITY_TABLE& density)
 {
@@ -140,22 +122,50 @@ inline auto py_load_RPWS_LOW_RATE_FULL_MFR0(const std::string& path)
     py::dict d;
     const auto values_count = s.frequency_table.FREQUENCY.size();
     const auto density_tables_count = std::size(s.spectral_density_tables);
-    auto spectral_density = py_create_ndarray<float>(density_tables_count, values_count);
-    auto time = py_create_ndarray<uint64_t>(density_tables_count);
-    transform_values(s.spectral_density_tables, time,
-        [](const auto& density) { return cassini_time_to_ns_since_epoch(density); });
-    auto frequency = py_create_ndarray<float>(values_count);
-    copy_values(s.frequency_table.FREQUENCY, frequency);
-    for_each_block(s.spectral_density_tables,
-        [&, global_offset = 0ULL](const auto& table) mutable
-        {
-            copy_values(table.DENSITY, spectral_density, global_offset);
-            global_offset += values_count;
-        });
-    d["time"] = std::move(time);
-    d["frequency"] = std::move(frequency);
-    d["spectral_density"] = std::move(spectral_density);
+    {
+        auto time = py_create_ndarray<uint64_t>(density_tables_count);
+        transform_values(s.spectral_density_tables, time,
+            [](const auto& density) { return cassini_time_to_ns_since_epoch(density); });
+        d["time"] = std::move(time);
+    }
+    {
+        auto frequency = py_create_ndarray<float>(values_count);
+        copy_values(s.frequency_table.FREQUENCY, frequency);
+        d["frequency"] = std::move(frequency);
+    }
+    {
+        auto spectral_density = py_create_ndarray<float>(density_tables_count, values_count);
+        for_each_block(s.spectral_density_tables,
+            [&, global_offset = 0ULL](const auto& table) mutable
+            {
+                copy_values(table.DENSITY, spectral_density, global_offset);
+                global_offset += values_count;
+            });
+        d["spectral_density"] = std::move(spectral_density);
+    }
+    {
+        auto sensor_number = py_create_ndarray<SENSOR_NUMBER>(density_tables_count);
+        transform_values(s.spectral_density_tables, sensor_number,
+            [](const auto& density) { return density.data_quality.sensor_number(); });
+        d["sensor_number"] = std::move(sensor_number);
+    }
     return d;
+}
+
+inline void py_register_RPWS_LOW_RATE_FULL_MFR0(py::module& m)
+{
+    m.def("load_RPWS_LOW_RATE_FULL_MFR0", &py_load_RPWS_LOW_RATE_FULL_MFR0);
+    py::enum_<SENSOR_NUMBER>(m, "SENSOR_NUMBER")
+        .value("Ex", SENSOR_NUMBER::Ex)
+        .value("Eu", SENSOR_NUMBER::Eu)
+        .value("Ev", SENSOR_NUMBER::Ev)
+        .value("Ew", SENSOR_NUMBER::Ew)
+        .value("Bx", SENSOR_NUMBER::Bx)
+        .value("By", SENSOR_NUMBER::By)
+        .value("Bz", SENSOR_NUMBER::Bz)
+        .value("Hf", SENSOR_NUMBER::Hf)
+        .value("Lp", SENSOR_NUMBER::Lp);
+
 }
 
 #endif

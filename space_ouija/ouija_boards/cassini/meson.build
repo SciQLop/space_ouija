@@ -3,6 +3,7 @@ fs.copyfile('__init__.py' ,'__init__.py')
 cassini_headers = files(
     'rpws.hpp',
     'RPWS_LOW_RATE_FULL_MFR0.hpp',
+    'RPWS_WIDEBAND_FULL_WBRFR.hpp',
     'cassini.hpp'
 )
 

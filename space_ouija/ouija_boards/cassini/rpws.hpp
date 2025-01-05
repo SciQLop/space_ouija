@@ -23,6 +23,7 @@
 /*-- Author : Alexis Jeandet
 -- Mail : alexis.jeandet@member.fsf.org
 ----------------------------------------------------------------------------*/
+#pragma once
 #include <cpp_utils/endianness/endianness.hpp>
 #include <cpp_utils/reflexion/reflection.hpp>
 #include <cpp_utils/serde/special_fields.hpp>

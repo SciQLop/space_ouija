@@ -23,6 +23,7 @@ configure_file(output : 'space_ouija_config.h',
                configuration : conf_data)
 
 space_ouija_headers = files(
+ 'py_array.hpp'
 )
 
 

@@ -23,34 +23,41 @@
 /*-- Author : Alexis Jeandet
 -- Mail : alexis.jeandet@member.fsf.org
 ----------------------------------------------------------------------------*/
-#include <algorithm>
-#include <filesystem>
-#include <pybind11/chrono.h>
-#include <pybind11/iostream.h>
-#include <pybind11/numpy.h>
+#pragma once
+#ifdef SPACE_OUIJA_PYTHON_BINDINGS
 #include <pybind11/pybind11.h>
+
+#include <pybind11/numpy.h>
 #include <pybind11/stl.h>
-#include <pybind11/stl_bind.h>
-#ifndef SPACE_OUIJA_PYTHON_BINDINGS
-#define SPACE_OUIJA_PYTHON_BINDINGS
-#endif
-namespace py = pybind11;
-#include "RPWS_LOW_RATE_FULL_MFR0.hpp"
-#include "RPWS_WIDEBAND_FULL_WBRFR.hpp"
-#include <space_ouija_config.h>
 
-namespace py = pybind11;
-using namespace ouija_boards::cassini::rpws;
+template <typename T>
+concept py_array_interface = requires(T t) {
+    t.data();
+    t.shape();
+    t.strides();
+    t.mutable_data();
+};
 
-PYBIND11_MODULE(_cassini, m)
+template <typename T>
+inline auto py_create_ndarray(auto... shape)
 {
-    m.doc() = R"pbdoc(
-        _space_ouija
-        --------
-
-    )pbdoc";
-
-    m.attr("__version__") = SPACE_OUIJA_VERSION;
-    py_register_RPWS_LOW_RATE_FULL_MFR0(m);
-    py_register_RPWS_WBR_WFR(m);
+    namespace py = pybind11;
+    return py::array_t<T>({ static_cast<py::ssize_t>(shape)... });
 }
+
+inline void copy_values(const auto& src, py_array_interface auto& dst, uint64_t offset = 0)
+{
+    std::memcpy(dst.mutable_data() + offset, src.data(), src.size() * sizeof(decltype(src[0])));
+}
+
+inline void for_each_block(const auto& src, auto&& f)
+{
+    std::for_each(std::begin(src), std::end(src), f);
+}
+
+inline void transform_values(const auto& src, py_array_interface auto& dst, auto&& f)
+{
+    std::transform(
+        std::begin(src), std::end(src), dst.mutable_data(), std::forward<decltype(f)>(f));
+}
+#endif

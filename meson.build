@@ -41,7 +41,9 @@ space_ouija_extra_files = files(
     '.bumpversion.cfg',
     'version.txt',
     '.github/workflows/CI.yml',
-    '.github/workflows/tests-with-coverage.yml'
+    '.github/workflows/tests-with-coverage.yml',
+    'resources/imHexPatterns/CASSINI_RPWS_LOW_RATE_FULL_MFR0.hexpat',
+    'resources/imHexPatterns/CASSINI_RPWS__WBR_WFR.hexpat'
 )
 
 space_ouija_doc_extra_files =  files(
