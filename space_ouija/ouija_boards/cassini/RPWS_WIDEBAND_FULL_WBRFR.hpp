@@ -58,6 +58,43 @@ enum class ANTENNA_t : uint8_t
     Unknown = 15
 };
 
+enum class FREQUENCY_BAND_t : uint8_t
+{
+    /*
+    0 = 26 Hz, 10 millisecond sample period          (WFR only)
+    1 = 2.5 KHz, 140 microsecond sample period       (WFR only)
+    2 = 10 KHz filter, 36 microsecond sample period  (WBR only)
+    3 = 80 KHz filter, 4.5 microsecond sample period (WBR only)"
+    */
+    Hz26 = 0,
+    KHz2_5 = 1,
+    KHz10 = 2,
+    KHz80 = 3
+};
+
+inline double frequency_band_to_dt(FREQUENCY_BAND_t band)
+{
+    switch (band)
+    {
+        case FREQUENCY_BAND_t::Hz26:
+            return 10e-3;
+        case FREQUENCY_BAND_t::KHz2_5:
+            return 140e-6;
+        case FREQUENCY_BAND_t::KHz10:
+            return 36e-6;
+        case FREQUENCY_BAND_t::KHz80:
+            return 4.5e-6;
+    }
+    return 0;
+}
+
+inline uint8_t decode_gain(uint8_t gain)
+{
+    auto WALSH_DGF = ((gain >> 3) & 0x3) * 6;
+    auto ANALOG_GAIN = ((gain >> 6) & 0x7) * 10;
+    return WALSH_DGF + ANALOG_GAIN;
+}
+
 struct RPWS_WBR_WFR_ROW_PREFIX
 {
     using endianness = cpp_utils::endianness::big_endian_t;
@@ -67,9 +104,9 @@ struct RPWS_WBR_WFR_ROW_PREFIX
     uint16_t DATA_RTI;
     uint8_t VALIDITY_FLAG;
     uint8_t STATUS_FLAG;
-    uint8_t FREQUENCY_BAND;
+    FREQUENCY_BAND_t FREQUENCY_BAND;
     uint8_t GAIN;
-    uint8_t ANTENNA;
+    ANTENNA_t ANTENNA;
     uint8_t AGC;
     uint8_t HFR_XLATE;
     uint8_t SUB_RTI;
@@ -84,27 +121,27 @@ struct RPWS_WBR_WFR_ROW
 {
     using endianness = cpp_utils::endianness::big_endian_t;
     RPWS_WBR_WFR_ROW_PREFIX prefix;
-    cpp_utils::serde::static_array<uint8_t, 1536> TIME_SERIES;
-    cpp_utils::serde::dynamic_array<0, uint8_t> padding;
+    cpp_utils::serde::dynamic_array<0, uint8_t> TIME_SERIES;
     std::size_t field_size(const cpp_utils::serde::dynamic_array<0, uint8_t>&) const
     {
-        return prefix.RECORD_BYTES - 1536
+        return prefix.SAMPLES;
+    }
+
+    cpp_utils::serde::dynamic_array<1, uint8_t> padding;
+
+    std::size_t field_size(const cpp_utils::serde::dynamic_array<1, uint8_t>&) const
+    {
+        return prefix.RECORD_BYTES - prefix.SAMPLES
             - cpp_utils::reflexion::composite_size<RPWS_WBR_WFR_ROW_PREFIX>();
     }
 };
+static_assert(!cpp_utils::reflexion::composite_have_const_size<RPWS_WBR_WFR_ROW>());
 
 struct RPWS_WBR_WFR
 {
     using endianness = cpp_utils::endianness::big_endian_t;
     cpp_utils::serde::dynamic_array_until_eof<RPWS_WBR_WFR_ROW> rows;
 };
-static_assert(cpp_utils::reflexion::is_dyn_size_field_v<decltype(RPWS_WBR_WFR{}.rows)>);
-static_assert(!cpp_utils::serde::const_size_field<decltype(RPWS_WBR_WFR{}.rows)>);
-static_assert(!cpp_utils::serde::const_size_field<decltype(RPWS_WBR_WFR_ROW{}.padding)>);
-static_assert(!cpp_utils::reflexion::composite_have_const_size<RPWS_WBR_WFR_ROW>());
-static_assert(std::is_compound_v<RPWS_WBR_WFR_ROW>);
-static_assert(!std::is_array_v<RPWS_WBR_WFR_ROW>);
-static_assert(!cpp_utils::reflexion::is_field_v<RPWS_WBR_WFR_ROW>);
 
 
 inline auto load_RPWS_WBR_WFR(const std::string& path)
@@ -127,21 +164,29 @@ inline auto py_load_RPWS_WBR_WFR(const std::string& path)
     auto s = load_RPWS_WBR_WFR(path);
     py::dict d;
     {
-        auto time_series = py_create_ndarray<uint8_t>(std::size(s.rows), 1536);
-        auto antennas = py_create_ndarray<uint8_t>(std::size(s.rows));
-        auto gain = py_create_ndarray<uint8_t>(std::size(s.rows));
-
-        for_each_block(s.rows,
-            [&, i = 0](const auto& row) mutable
-            {
-                copy_values(row.TIME_SERIES, time_series, i * 1536);
-                antennas.mutable_data()[i] = row.prefix.ANTENNA;
-                gain.mutable_data()[i] = row.prefix.GAIN;
-                i++;
-            });
-        d["time_series"] = std::move(time_series);
-        d["antennas"] = std::move(antennas);
-        d["gain"] = std::move(gain);
+        if (std::size(s.rows) != 0)
+        {
+            const auto samples = s.rows[0].prefix.SAMPLES;
+            const auto sampling_period = frequency_band_to_dt(s.rows[0].prefix.FREQUENCY_BAND);
+            auto time_series = py_create_ndarray<uint8_t>(std::size(s.rows), samples);
+            auto antennas = py_create_ndarray<ANTENNA_t>(std::size(s.rows));
+            auto gain = py_create_ndarray<uint8_t>(std::size(s.rows));
+            auto time = py_create_ndarray<uint64_t>(std::size(s.rows));
+            for_each_block(s.rows,
+                [&, i = 0](const auto& row) mutable
+                {
+                    copy_values(row.TIME_SERIES, time_series, i * samples);
+                    antennas.mutable_data()[i] = row.prefix.ANTENNA;
+                    gain.mutable_data()[i] = decode_gain(row.prefix.GAIN);
+                    time.mutable_data()[i] = cassini_time_to_ns_since_epoch(row.prefix);
+                    i++;
+                });
+            d["time"] = array_to_datetime64(std::move(time));
+            d["time_series"] = std::move(time_series);
+            d["antennas"] = std::move(antennas);
+            d["gain"] = std::move(gain);
+            d["sampling_period"] = sampling_period;
+        }
     }
     return d;
 }

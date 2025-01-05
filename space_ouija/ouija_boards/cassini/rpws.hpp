@@ -74,9 +74,35 @@ struct RPWS_SCLK_SCET
 };
 static_assert(cpp_utils::reflexion::composite_size<RPWS_SCLK_SCET>() == 12);
 
-inline uint64_t cassini_time_to_ns_since_epoch(const RPWS_SCLK& sclk, const RPWS_SCET&)
+template <typename T>
+concept block_with_sclk_scet_and_sub_rti = requires(T t) {
+    { t.sclk_scet } -> std::convertible_to<RPWS_SCLK_SCET>;
+    { t.SUB_RTI } -> std::convertible_to<uint32_t>;
+};
+
+template <typename T>
+concept block_with_sclk_scet = requires(T t) {
+    { t.sclk_scet } -> std::convertible_to<RPWS_SCLK_SCET>;
+} && !block_with_sclk_scet_and_sub_rti<T>;
+
+
+inline uint64_t cassini_time_to_ns_since_epoch(
+    const RPWS_SCLK_SCET& sclk_scet, uint32_t SUB_RTI = 0)
 {
-    uint64_t seconds = static_cast<uint64_t>(sclk.SCLK_SECOND) - 378694800ULL;
-    return (seconds * 1000'000'000) + (sclk.SCLK_FINE * 1000'000'000 / 256);
+    const uint64_t seconds = static_cast<uint64_t>(sclk_scet.sclk.SCLK_SECOND) - 378691200ULL;
+    const uint64_t microseconds
+        = static_cast<uint64_t>(sclk_scet.sclk.SCLK_FINE / 32) * 1000'000ULL / 8ULL
+        + static_cast<uint64_t>(SUB_RTI) * 1000ULL;
+    return (seconds * 1000'000'000) + (microseconds * 1000);
+}
+
+inline uint64_t cassini_time_to_ns_since_epoch(const block_with_sclk_scet_and_sub_rti auto& block)
+{
+    return cassini_time_to_ns_since_epoch(block.sclk_scet, block.SUB_RTI);
+}
+
+inline uint64_t cassini_time_to_ns_since_epoch(const block_with_sclk_scet auto& block)
+{
+    return cassini_time_to_ns_since_epoch(block.sclk_scet);
 }
 } // namespace ouija_boards::cassini::rpws

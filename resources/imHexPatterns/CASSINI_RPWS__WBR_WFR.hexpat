@@ -8,9 +8,10 @@ import std.io;
 import std.time;
 std::core::set_endian(std::mem::Endian::Big);
 
-fn format_time(auto seconds) {
-    // not sure why but it's off by 1 hour
-        return std::time::format(std::time::to_utc(seconds - 378694800 + 3600), "%Y:%m:%d %H:%M:%S");
+fn format_time(auto sclk_scet) {
+    u64 days = sclk_scet.scet.SCET_DAY -4383;
+    double seconds = double(days) * 24 * 3600;
+    return std::time::format(std::time::to_utc(seconds + double(sclk_scet.scet.SCET_MILLISECOND)/1000.), "%Y:%m:%d %H:%M:%S");
 };
 
 struct LRFULL_TABLE {
@@ -26,7 +27,7 @@ struct LRFULL_TABLE {
 };
 
 struct RPWS_SCLK {
-    u32 SCLK_SECOND[[format("format_time")]];
+    u32 SCLK_SECOND;
     u8 SCLK_PARTITION;
     u8 SCLK_FINE;
 };
@@ -39,7 +40,7 @@ struct  RPWS_SCET {
 struct RPWS_SCLK_SCET {
     RPWS_SCLK sclk;
     RPWS_SCET scet;
-};
+}[[format("format_time")]];
 
 enum DATA_VALIDITY : bool {
   good = 0,

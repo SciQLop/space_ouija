@@ -106,14 +106,9 @@ inline auto load_RPWS_LOW_RATE_FULL_MFR0(const std::string& path)
 #ifdef SPACE_OUIJA_PYTHON_BINDINGS
 #include <pybind11/pybind11.h>
 
+#include "py_array.hpp"
 #include <pybind11/numpy.h>
 #include <pybind11/stl.h>
-#include "py_array.hpp"
-
-uint64_t cassini_time_to_ns_since_epoch(const SPECTRAL_DENSITY_TABLE& density)
-{
-    return cassini_time_to_ns_since_epoch(density.sclk_scet.sclk, density.sclk_scet.scet);
-}
 
 inline auto py_load_RPWS_LOW_RATE_FULL_MFR0(const std::string& path)
 {
@@ -126,7 +121,7 @@ inline auto py_load_RPWS_LOW_RATE_FULL_MFR0(const std::string& path)
         auto time = py_create_ndarray<uint64_t>(density_tables_count);
         transform_values(s.spectral_density_tables, time,
             [](const auto& density) { return cassini_time_to_ns_since_epoch(density); });
-        d["time"] = std::move(time);
+        d["time"] = array_to_datetime64(std::move(time));
     }
     {
         auto frequency = py_create_ndarray<float>(values_count);
@@ -165,7 +160,6 @@ inline void py_register_RPWS_LOW_RATE_FULL_MFR0(py::module& m)
         .value("Bz", SENSOR_NUMBER::Bz)
         .value("Hf", SENSOR_NUMBER::Hf)
         .value("Lp", SENSOR_NUMBER::Lp);
-
 }
 
 #endif

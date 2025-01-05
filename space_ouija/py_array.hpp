@@ -30,6 +30,8 @@
 #include <pybind11/numpy.h>
 #include <pybind11/stl.h>
 
+namespace py = pybind11;
+
 template <typename T>
 concept py_array_interface = requires(T t) {
     t.data();
@@ -60,4 +62,11 @@ inline void transform_values(const auto& src, py_array_interface auto& dst, auto
     std::transform(
         std::begin(src), std::end(src), dst.mutable_data(), std::forward<decltype(f)>(f));
 }
+
+
+[[nodiscard]] inline py::object array_to_datetime64(const py_array_interface auto&& input)
+{
+     return py::cast(&input).attr("astype")("datetime64[ns]");
+}
+
 #endif

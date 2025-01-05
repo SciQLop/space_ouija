@@ -1,0 +1,414 @@
+/**********************************************************************/
+/* /opt/project/cassini/src/archive/RPWS_WBR_WFR_ROW_PREFIX.FMT       */
+/*                                                                    */
+/* 14 FEB 2005 update                                                 */
+/*      Corrected                                                     */
+/*              Band definitions (10Khz/80Khz)                        */
+/*                                                                    */
+/* 23 JUN 2003 update                                                 */
+/*      Corrected                                                     */
+/*              RTI field is MSB_INTEGER (was LSB)                    */
+/*                                                                    */
+/* 29 APR 2003 update                                                 */
+/*      Added                                                         */
+/*              HFR/H1 -> WBR/HF status bit                           */
+/*              HFR/H2 -> WBR/HF status bit                           */
+/*              FSW version field                                     */
+/*      Corrected                                                     */
+/*              EU current status bit position                        */
+/*              EV current status bit position                        */
+/*                                                                    */
+/* RPWS_WBR_WFR_ROW_PREFIX.FMT                                        */
+/* describes the structure of the row prefix table (record header)    */
+/* for the Cassini RPWS WBR and WFR archive files.  Some fields are   */
+/* valid for only one of the two receivers as noted.  Fields that     */
+/* are not used are always loaded with ZERO.                          */
+/*                                                                    */
+/* RPWS_SCLK_SCET.FMT contains spacecraft clock and spacecraft event  */
+/* time column descriptions common to several tables.                 */
+/**********************************************************************/
+
+^STRUCTURE              = "RPWS_SCLK_SCET.FMT"
+
+OBJECT                  = COLUMN
+  NAME                    = RECORD_BYTES
+  DATA_TYPE               = MSB_UNSIGNED_INTEGER
+  START_BYTE              = 13
+  BYTES                   = 2
+  DESCRIPTION             = "Number of octets in the entire RECORD.
+    This count includes header, time series, and optional fill."
+END_OBJECT              = COLUMN
+
+OBJECT                  = COLUMN
+  NAME                    = SAMPLES
+  DATA_TYPE               = MSB_UNSIGNED_INTEGER
+  START_BYTE              = 15
+  BYTES                   = 2
+  DESCRIPTION             = "Number of valid data samples in the time
+    series portion of each record.  Note that WBR samples are 1 byte
+    each and WFR samples are 2 bytes each."
+END_OBJECT              = COLUMN
+
+OBJECT                  = COLUMN
+  NAME                    = DATA_RTI
+  DATA_TYPE               = MSB_UNSIGNED_INTEGER
+  START_BYTE              = 17
+  BYTES                   = 2
+  DESCRIPTION             = "RPWS minipacket collection time.  This
+    modulo 65536 counter increments 8 times per second and is derived
+    from the low-order 13 bits of SCLK_SECOND and 3-bit RTI when the
+    data acquisition began."
+END_OBJECT              = COLUMN
+
+OBJECT                  = COLUMN
+  NAME                    = VALIDITY_FLAG
+  DATA_TYPE               = MSB_BIT_STRING
+  START_BYTE              = 19
+  BYTES                   = 1
+
+  OBJECT                  = BIT_COLUMN
+    NAME                    = MSF
+    BIT_DATA_TYPE           = BOOLEAN
+    START_BIT               = 1
+    BITS                    = 1
+    DESCRIPTION             = "This bit is used to indicate validity of
+      header fields SUB_RTI, HFR_XLATE, LP_DAC_0, and LP_DAC_1.
+        0 = Fields do not contain valid data
+        1 = Fields may contain valid data"
+  END_OBJECT              = BIT_COLUMN
+
+  OBJECT                  = BIT_COLUMN
+    NAME                    = WBR
+    BIT_DATA_TYPE           = BOOLEAN
+    START_BIT               = 2
+    BITS                    = 1
+    DESCRIPTION             = "This bit is used to indicate WBR data
+        is in this record.
+        0 = not WBR data
+        1 = WBR data"
+  END_OBJECT              = BIT_COLUMN
+
+  OBJECT                  = BIT_COLUMN
+    NAME                    = WFR
+    BIT_DATA_TYPE           = BOOLEAN
+    START_BIT               = 3
+    BITS                    = 1
+    DESCRIPTION             = "This bit is used to indicate WFR data
+        is in this record.
+        0 = not WFR data
+        1 = WFR data"
+  END_OBJECT              = BIT_COLUMN
+
+  OBJECT                  = BIT_COLUMN
+    NAME                    = VALID_WALSH_DGF
+    BIT_DATA_TYPE           = BOOLEAN
+    START_BIT               = 4
+    BITS                    = 1
+    DESCRIPTION             = "This bit is used to indicate that the
+      WALSH_DGF field contains valid data (WFR only).
+        0 = WALSH_DGF not in use (contents invalid)
+        1 = WALSH_DGF contains valid data"
+  END_OBJECT              = BIT_COLUMN
+
+  OBJECT                  = BIT_COLUMN
+    NAME                    = VALID_SUB_RTI
+    BIT_DATA_TYPE           = BOOLEAN
+    START_BIT               = 5
+    BITS                    = 1
+    DESCRIPTION             = "This bit is used to indicate that the
+      SUB_RTI field contains valid data (WBR only).
+        0 = SUB_RTI not in use (contents invalid)
+        1 = SUB_RTI contains valid data"
+  END_OBJECT              = BIT_COLUMN
+
+  OBJECT                  = BIT_COLUMN
+    NAME                    = VALID_HFR_XLATE
+    BIT_DATA_TYPE           = BOOLEAN
+    START_BIT               = 6
+    BITS                    = 1
+    DESCRIPTION             = "This bit is used to indicate that the
+      HFR_XLATE field contains valid data (WBR only)
+        0 = HFR_XLATE not in use (contents invalid)
+        1 = HFR_XLATE contains valid data"
+  END_OBJECT              = BIT_COLUMN
+
+  OBJECT                  = BIT_COLUMN
+    NAME                    = VALID_LP_DAC_0
+    BIT_DATA_TYPE           = BOOLEAN
+    START_BIT               = 7
+    BITS                    = 1
+    DESCRIPTION             = "This bit is used to indicate that the
+      LP_DAC_0 field contains valid data
+        0 = LP_DAC_0 not in use (contents invalid)
+        1 = LP_DAC_0 contains valid data"
+  END_OBJECT              = BIT_COLUMN
+
+  OBJECT                  = BIT_COLUMN
+    NAME                    = VALID_LP_DAC_1
+    BIT_DATA_TYPE           = BOOLEAN
+    START_BIT               = 8
+    BITS                    = 1
+    DESCRIPTION             = "This bit is used to indicate that the
+      LP_DAC_1 field contains valid data (WFR only)
+        0 = LP_DAC_1 not in use (contents invalid)
+        1 = LP_DAC_1 contains valid data"
+  END_OBJECT              = BIT_COLUMN
+
+END_OBJECT              = COLUMN
+
+OBJECT                  = COLUMN
+  NAME                    = STATUS_FLAG
+  DATA_TYPE               = MSB_BIT_STRING
+  START_BYTE              = 20
+  BYTES                   = 1
+
+  OBJECT                  = BIT_COLUMN
+    NAME                    = AGC_ENABLE
+    BIT_DATA_TYPE           = BOOLEAN
+    START_BIT               = 1
+    BITS                    = 1
+    DESCRIPTION             = "Automatic gain control enable
+        0 = AGC disabled
+        1 = AGC enabled
+      This status bit was added in the V2.6 FSW release.  Prior to
+      2002-12-21 this status bit was always zero. (WBR only)"
+  END_OBJECT              = BIT_COLUMN
+
+  OBJECT                  = BIT_COLUMN
+    NAME                    = FINE_TIME_QUALITY
+    BIT_DATA_TYPE           = BOOLEAN
+    START_BIT               = 2
+    BITS                    = 1
+    DESCRIPTION             = "This bit indicates the accuracy of the
+      SUB_RTI field that appears in the status field.  It is ONLY
+      MEANINGFUL when MORE_STATUS_FOLLOWS bit is set to ONE.
+        0 = SUB_RTI is accurate to approximately 1 millisecond
+        1 = SUB_RTI is accurate to approximately 10 milliseconds
+      This status bit was added in the V2.6 FSW release.  Prior to
+      2002-12-21 this status bit was always zero. (WBR only)"
+  END_OBJECT              = BIT_COLUMN
+
+  OBJECT                  = BIT_COLUMN
+    NAME                    = TIMEOUT
+    BIT_DATA_TYPE           = BOOLEAN
+    START_BIT               = 3
+    BITS                    = 1
+    DESCRIPTION             = "This bit is used to indicate that the
+      time series is corrupt due to a timeout condition that occurred in
+      the instrument hardware.
+        0 = time series is correctly acquired
+        1 = time series is corrupt and should be discarded
+      This status bit was added in the V2.6 FSW release.  Prior to
+      2002-12-21 this status bit was always zero. (WBR only)"
+  END_OBJECT              = BIT_COLUMN
+
+  OBJECT                  = BIT_COLUMN
+    NAME                    = SUSPECT
+    BIT_DATA_TYPE           = BOOLEAN
+    START_BIT               = 4
+    BITS                    = 1
+    DESCRIPTION             = "This bit is used to indicate that the
+      time series is probably corrupt, it did not pass validity tests.
+        0 = time series is correctly acquired
+        1 = time series is may be corrupt; may be best to discard.
+      This status bit is an indication of a problem introduced by
+      the ground software."
+  END_OBJECT              = BIT_COLUMN
+
+  OBJECT                  = BIT_COLUMN
+    NAME                    = HFR_H2
+    BIT_DATA_TYPE           = BOOLEAN
+    START_BIT               = 5
+    BITS                    = 1
+    DESCRIPTION             = "This bit is used to indicate that
+      the WBR HF input is connected to the HFR/H2 down converter.
+      0 indicates that HFR/H2 is not connected to the WBR HF
+        antenna input
+      1 indicates that HFR/H2 is connected to the WBR HF antenna
+        input."
+  END_OBJECT              = BIT_COLUMN
+
+  OBJECT                  = BIT_COLUMN
+    NAME                    = HFR_H1
+    BIT_DATA_TYPE           = BOOLEAN
+    START_BIT               = 6
+    BITS                    = 1
+    DESCRIPTION             = "This bit is used to indicate that
+      the WBR HF input is connected to the HFR/H1 down converter.
+      0 indicates that HFR/H1 is not connected to the WBR HF
+        antenna input
+      1 indicates that HFR/H1 is connected to the WBR HF antenna
+        input."
+  END_OBJECT              = BIT_COLUMN
+
+  OBJECT                  = BIT_COLUMN
+    NAME                    = EU_CURRENT
+    BIT_DATA_TYPE           = BOOLEAN
+    START_BIT               = 7
+    BITS                    = 1
+    DESCRIPTION             = "This bit is used to indicate that the
+      EU antenna is measuring current (WFR only).
+      0 indicates voltage measurement
+      1 indicates current measurement."
+  END_OBJECT              = BIT_COLUMN
+
+  OBJECT                  = BIT_COLUMN
+    NAME                    = EV_CURRENT
+    BIT_DATA_TYPE           = BOOLEAN
+    START_BIT               = 8
+    BITS                    = 1
+    DESCRIPTION             = "This bit is used to indicate that the
+      EV antenna is measuring current (WFR only).
+      0 indicates voltage measurement
+      1 indicates current measurement."
+  END_OBJECT              = BIT_COLUMN
+
+END_OBJECT              = COLUMN
+
+OBJECT                  = COLUMN
+  NAME                    = FREQUENCY_BAND
+  DATA_TYPE               = MSB_UNSIGNED_INTEGER
+  START_BYTE              = 21
+  BYTES                   = 1
+  DESCRIPTION             = "Frequency band of these samples:
+    0 = 26 Hz, 10 millisecond sample period          (WFR only)
+    1 = 2.5 KHz, 140 microsecond sample period       (WFR only)
+    2 = 10 KHz filter, 36 microsecond sample period  (WBR only)
+    3 = 80 KHz filter, 4.5 microsecond sample period (WBR only)"
+END_OBJECT              = COLUMN
+
+OBJECT                  = COLUMN
+  NAME                    = GAIN
+  DATA_TYPE               = MSB_BIT_STRING
+  START_BYTE              = 22
+  BYTES                   = 1
+  DESCRIPTION             = "Composite gain setting"
+
+  OBJECT                  = BIT_COLUMN
+    NAME                    = WALSH_DGF
+    BIT_DATA_TYPE           = MSB_UNSIGNED_INTEGER
+    START_BIT               = 3
+    BITS                    = 2
+    DESCRIPTION             = "Walsh compression factor (WFR only)
+      0 = gain level 0 dB
+      1 = gain level 6 dB
+      2 = gain level 12 dB
+      3 = gain level 18 dB"
+  END_OBJECT              = BIT_COLUMN
+
+  OBJECT                  = BIT_COLUMN
+    NAME                    = ANALOG_GAIN
+    BIT_DATA_TYPE           = MSB_UNSIGNED_INTEGER
+    START_BIT               = 6
+    BITS                    = 3
+    DESCRIPTION             = "Analog gain setting, 0 dB - 70 dB
+      in 10 dB steps:
+      0 = gain level 00 dB
+      1 = gain level 10 dB
+      2 = gain level 20 dB
+      3 = gain level 30 dB
+      4 = gain level 40 dB    (WBR only)
+      5 = gain level 50 dB    (WBR only)
+      6 = gain level 60 dB    (WBR only)
+      7 = gain level 70 dB    (WBR only)"
+  END_OBJECT              = BIT_COLUMN
+
+END_OBJECT              = COLUMN
+
+OBJECT                  = COLUMN
+  NAME                    = ANTENNA
+  DATA_TYPE               = MSB_UNSIGNED_INTEGER
+  START_BYTE              = 23
+  BYTES                   = 1
+  DESCRIPTION             = "Antenna selection:
+     0 = Ex, electric dipole X-direction
+     1 = Eu, electric U-direction (aka Ex+) (WFR only)
+     2 = Ev, electric V-direction (aka Ex-) (WFR only)
+     3 = Ew, electric W-direction (aka Ez)
+     4 = Bx, magnetic X-direction
+     5 = By, magnetic Y-direction           (WFR only)
+     6 = Bz, magnetic Z-direction           (WFR only)
+     8 = HF, HFR downconvert                (WBR only)
+    11 = LP, Langmuir probe sphere
+    15 = unknown, antenna cannot be determined"
+END_OBJECT              = COLUMN
+
+OBJECT                  = COLUMN
+  NAME                    = AGC
+  DATA_TYPE               = MSB_UNSIGNED_INTEGER
+  START_BYTE              = 24
+  BYTES                   = 1
+  DESCRIPTION             = "Value read from signal level integrator.
+    Used to make decision about gain level selection for the next time
+    series. (WBR only)"
+END_OBJECT              = COLUMN
+
+OBJECT                  = COLUMN
+  NAME                    = HFR_XLATE
+  DATA_TYPE               = MSB_UNSIGNED_INTEGER
+  START_BYTE              = 25
+  BYTES                   = 1
+  DESCRIPTION             = "Translation Frequency when HFR is selected
+    as a signal source (see ANTENNA column).  The translation table may
+    be found in the Users Guide/Software Operations Manual for RPWS.  In
+    general, odd numbers indicate HFR/H1 is selected with frequency in
+    25 KHz steps, and even numbers indicate HFR/H2 is selected with
+    frequency in 50 KHz steps with an offset of 4.025 MHz."
+END_OBJECT              = COLUMN
+
+OBJECT                  = COLUMN
+  NAME                    = SUB_RTI
+  DATA_TYPE               = MSB_UNSIGNED_INTEGER
+  START_BYTE              = 26
+  BYTES                   = 1
+  DESCRIPTION             = "Sub-RTI timing.  When WBR is not
+    running synchronized with the RTI signal, this field contains
+    additional timing information.  This field is the number of
+    milliseconds into the RTI period that the data acquisition
+    begins.  (WBR only)"
+END_OBJECT              = COLUMN
+
+OBJECT                  = COLUMN
+  NAME                    = LP_DAC_0
+  DATA_TYPE               = MSB_UNSIGNED_INTEGER
+  START_BYTE              = 27
+  BYTES                   = 1
+  DESCRIPTION             = "Voltage on Langmuir probe sphere DAC when
+    LP is selected as a signal source (see ANTENNA column).  Additional
+    status from either housekeeping or a concurrent LP data set is
+    required to obtain the relay/multiplexer setting in order to
+    determine the actual voltage setting.  The Users Guide/Software
+    Operations Manual for RPWS must be consulted for complete details."
+END_OBJECT              = COLUMN
+
+OBJECT                  = COLUMN
+  NAME                    = LP_DAC_1
+  DATA_TYPE               = MSB_UNSIGNED_INTEGER
+  START_BYTE              = 28
+  BYTES                   = 1
+  DESCRIPTION             = "Voltage on Langmuir probe cylinder DAC
+    when LP is selected as a signal source (see ANTENNA column).
+    Additional status from either housekeeping or a concurrent LP
+    data set is required to obtain the relay/multiplexer setting
+    in order to determine the actual voltage setting.  The Users
+    Guide/Software Operations Manual for RPWS must be consulted
+    for complete details. (WFR only)"
+END_OBJECT              = COLUMN
+
+OBJECT                  = COLUMN
+  NAME                    = FSW_VER
+  DATA_TYPE               = MSB_UNSIGNED_INTEGER
+  START_BYTE              = 29
+  BYTES                   = 1
+  DESCRIPTION             = "Flight Software Version.
+    This value indicates which version of flight software was loaded into
+    the RPWS instrument when this data record was produced.
+    Valid values are as follows:
+      202 indicates FSW V2.2
+      203 indicates FSW V2.3
+      204 indicates FSW V2.4
+      205 indicates FSW V2.5
+      206 indicates FSW V2.6"
+END_OBJECT              = COLUMN
+
+/* END OF RPWS_WBR_WFR_ROW_PREFIX.FMT */
