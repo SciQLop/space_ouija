@@ -37,6 +37,7 @@
 namespace py = pybind11;
 #include "RPWS_LOW_RATE_FULL_MFR0.hpp"
 #include "RPWS_WIDEBAND_FULL_WBRFR.hpp"
+#include "RPWS_WAVEFORM_FULL.hpp"
 #include <space_ouija_config.h>
 
 namespace py = pybind11;
@@ -53,4 +54,5 @@ PYBIND11_MODULE(_cassini, m)
     m.attr("__version__") = SPACE_OUIJA_VERSION;
     py_register_RPWS_LOW_RATE_FULL_MFR0(m);
     py_register_RPWS_WBR_WFR(m);
+    py_register_RPWS_WFR(m);
 }

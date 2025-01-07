@@ -74,6 +74,94 @@ struct RPWS_SCLK_SCET
 };
 static_assert(cpp_utils::reflexion::composite_size<RPWS_SCLK_SCET>() == 12);
 
+
+enum class ANTENNA_t : uint8_t
+{
+    /*0 = Ex, electric dipole X-direction
+     1 = Eu, electric U-direction (aka Ex+) (WFR only)
+     2 = Ev, electric V-direction (aka Ex-) (WFR only)
+     3 = Ew, electric W-direction (aka Ez)
+     4 = Bx, magnetic X-direction
+     5 = By, magnetic Y-direction           (WFR only)
+     6 = Bz, magnetic Z-direction           (WFR only)
+     8 = HF, HFR downconvert                (WBR only)
+    11 = LP, Langmuir probe sphere
+    15 = unknown, antenna cannot be determined"
+    */
+    Ex = 0,
+    Eu = 1,
+    Ev = 2,
+    Ew = 3,
+    Bx = 4,
+    By = 5,
+    Bz = 6,
+    Hf = 8,
+    Lp = 11,
+    Unknown = 15
+};
+
+enum class FREQUENCY_BAND_t : uint8_t
+{
+    /*
+    0 = 26 Hz, 10 millisecond sample period          (WFR only)
+    1 = 2.5 KHz, 140 microsecond sample period       (WFR only)
+    2 = 10 KHz filter, 36 microsecond sample period  (WBR only)
+    3 = 80 KHz filter, 4.5 microsecond sample period (WBR only)"
+    */
+    Hz26 = 0,
+    KHz2_5 = 1,
+    KHz10 = 2,
+    KHz80 = 3
+};
+
+inline double frequency_band_to_dt(FREQUENCY_BAND_t band)
+{
+    switch (band)
+    {
+        case FREQUENCY_BAND_t::Hz26:
+            return 10e-3;
+        case FREQUENCY_BAND_t::KHz2_5:
+            return 140e-6;
+        case FREQUENCY_BAND_t::KHz10:
+            return 36e-6;
+        case FREQUENCY_BAND_t::KHz80:
+            return 4.5e-6;
+    }
+    return 0;
+}
+
+inline uint8_t decode_gain(uint8_t gain)
+{
+    auto WALSH_DGF = ((gain >> 3) & 0x3) * 6;
+    auto ANALOG_GAIN = ((gain >> 6) & 0x7) * 10;
+    return WALSH_DGF + ANALOG_GAIN;
+}
+
+struct RPWS_WBR_WFR_ROW_PREFIX
+{
+    using endianness = cpp_utils::endianness::big_endian_t;
+    RPWS_SCLK_SCET sclk_scet;
+    uint16_t RECORD_BYTES;
+    uint16_t SAMPLES;
+    uint16_t DATA_RTI;
+    uint8_t VALIDITY_FLAG;
+    uint8_t STATUS_FLAG;
+    FREQUENCY_BAND_t FREQUENCY_BAND;
+    uint8_t GAIN;
+    ANTENNA_t ANTENNA;
+    uint8_t AGC;
+    uint8_t HFR_XLATE;
+    uint8_t SUB_RTI;
+    uint8_t LP_DAC_0;
+    uint8_t LP_DAC_1;
+    uint8_t FSW_VER;
+    cpp_utils::serde::static_array<uint8_t, 3> SPARE;
+};
+static_assert(cpp_utils::reflexion::composite_size<RPWS_WBR_WFR_ROW_PREFIX>() == 32);
+
+
+
+
 template <typename T>
 concept block_with_sclk_scet_and_sub_rti = requires(T t) {
     { t.sclk_scet } -> std::convertible_to<RPWS_SCLK_SCET>;
@@ -89,11 +177,11 @@ concept block_with_sclk_scet = requires(T t) {
 inline uint64_t cassini_time_to_ns_since_epoch(
     const RPWS_SCLK_SCET& sclk_scet, uint32_t SUB_RTI = 0)
 {
-    const uint64_t seconds = static_cast<uint64_t>(sclk_scet.sclk.SCLK_SECOND) - 378691200ULL;
-    const uint64_t microseconds
-        = static_cast<uint64_t>(sclk_scet.sclk.SCLK_FINE / 32) * 1000'000ULL / 8ULL
-        + static_cast<uint64_t>(SUB_RTI) * 1000ULL;
-    return (seconds * 1000'000'000) + (microseconds * 1000);
+    const uint64_t seconds = static_cast<uint64_t>(sclk_scet.sclk.SCLK_SECOND) - 378773032ULL;
+    const uint64_t microseconds = 0;
+    /*    = static_cast<uint64_t>(sclk_scet.sclk.SCLK_FINE / 32) * 1000'000ULL / 8ULL
+        + static_cast<uint64_t>(SUB_RTI) * 1000ULL;*/
+    return ((seconds * 1000'000) + (microseconds)) * 999'951'422/ 1'000'000;
 }
 
 inline uint64_t cassini_time_to_ns_since_epoch(const block_with_sclk_scet_and_sub_rti auto& block)

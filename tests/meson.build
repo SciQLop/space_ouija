@@ -13,6 +13,11 @@ tests = [
         'sources': ['Cassini/test_RPWS_WBR_WFR.cpp'],
         'deps': [space_ouija_dep, catch2_dep]
     },
+    {
+      'name':'Cassini_manal_test',
+      'sources': ['Cassini/manual_test.cpp'],
+      'deps': [space_ouija_dep]
+    },
 ]
 
 foreach unit_test : tests

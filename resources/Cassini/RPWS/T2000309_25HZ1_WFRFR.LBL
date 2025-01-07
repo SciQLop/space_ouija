@@ -1,0 +1,134 @@
+PDS_VERSION_ID          = PDS3
+
+/* File characteristics */
+
+RECORD_TYPE             = FIXED_LENGTH
+RECORD_BYTES            = 1056
+FILE_RECORDS            = 2615
+DESCRIPTION             = "T2000309_25HZ1_WFRFR.DAT contains Cassini
+    Radio and Plasma Wave (RPWS) waveform data for the time period between
+    2000-309T00:00:00.000 and 2000-310T00:00:00.000 that includes the
+    following targets: JUPITER,
+                       SOLAR SYSTEM."
+
+
+/* Data object pointers */
+
+^WFR_ROW_PREFIX_TABLE   = ("T2000309_25HZ1_WFRFR.DAT", 1)
+^TIME_SERIES            = ("T2000309_25HZ1_WFRFR.DAT", 1)
+
+/* Identification */
+
+DATA_SET_ID             = "CO-V/E/J/S/SS-RPWS-2-REFDR-WFRFULL-V1.0"
+DATA_SET_NAME           = "
+               CO V/E/J/S/SS RPWS 2 REFDR WFR FULL RESOLUTION V1.0"
+PRODUCT_ID              = "T2000309_25HZ1_WFRFR_V1"
+PRODUCT_CREATION_TIME   = 2005-04-02
+START_TIME              = 2000-309T00:00:00.000Z
+STOP_TIME               = 2000-310T00:00:00.000Z
+SPACECRAFT_CLOCK_START_COUNT = "1/1351987864:005"
+SPACECRAFT_CLOCK_STOP_COUNT  = "1/1352074264:159"
+NATIVE_START_TIME            = "26568064.183"                                 
+NATIVE_STOP_TIME             = "26654464.183"                                 
+NOTE                         = "NATIVE_TIME is NAIF 'et' (ephemeris 
+  time or barycentric dynamical time) as used in the spice kernel."
+PRODUCT_TYPE                 = DATA
+STANDARD_DATA_PRODUCT_ID     = RPWS_WAVEFORM_FULL
+MISSION_PHASE_NAME           = {"INSTRUMENT CHECKOUT 2",
+                                "OUTER CRUISE"}
+TARGET_NAME                  = {"JUPITER",
+                                "SOLAR SYSTEM"}
+SOFTWARE_VERSION_ID          = "RPWS_HR_AR V8.0"
+
+/* Instrument description */
+
+INSTRUMENT_HOST_NAME    = "CASSINI ORBITER"
+INSTRUMENT_HOST_ID      = CO
+INSTRUMENT_NAME         = "RADIO AND PLASMA WAVE SCIENCE"
+INSTRUMENT_ID           = RPWS
+SECTION_ID              = WFR
+
+/* Data Object Structure */
+/**************************************************************/
+/*      1                  32 33                 x1      x2   */
+/*     +---------------------+---------------------+-------+  */
+/*     |                     |                     |       |  */
+/*  1  | ROW_PREFIX_TABLE -->| TIME_SERIES ------->| SPARE |  */
+/*     |                     |                     |       |  */
+/*     +---------------------+---------------------+-------+  */
+/*     |                     |                     |       |  */
+/*     | ROW_PREFIX_TABLE -->| TIME_SERIES ------->| SPARE |  */
+/*  2  |                     |                     |       |  */
+/*     +---------------------+---------------------+-------+  */
+/*     |                     |                     |       |  */
+/*  3  | ROW_PREFIX_TABLE -->| TIME_SERIES ------->| SPARE |  */
+/*     |                     |                     |       |  */
+/*     +---------------------+---------------------+-------+  */
+/*  . . .                                                     */
+/*     +---------------------+---------------------+-------+  */
+/*     |                     |                     |       |  */
+/*  y  | ROW_PREFIX_TABLE -->| TIME_SERIES ------->| SPARE |  */
+/*     |                     |                     |       |  */
+/*     +---------------------+---------------------+-------+  */
+/*                                                            */
+/*     8-bit octet are numbered across the top.               */
+/*         No header records, all records are in the          */
+/*         same format.                                       */
+/*     Record Number is down the left edge.                   */
+/*                                                            */
+/*  x1 is ROW_BYTES+32 (ITEMS)                                */
+/*  x2 is RECORD_BYTES                                        */
+/*  y  is FILE_RECORDS (ROWS)                                 */
+/*                                                            */
+/**************************************************************/
+
+/* Record header */
+
+OBJECT                  = WFR_ROW_PREFIX_TABLE
+  NAME                    = WFR_ROW_PREFIX_TABLE
+  INTERCHANGE_FORMAT      = BINARY
+  ROWS                    = 2615
+  COLUMNS                 = 19
+  ROW_BYTES               = 32
+  ROW_SUFFIX_BYTES        = 1024
+  DESCRIPTION             = "This table describes the structure of the
+    record header attached to each row of time series data."
+  ^STRUCTURE              = "RPWS_WBR_WFR_ROW_PREFIX.FMT"
+END_OBJECT              = WFR_ROW_PREFIX_TABLE
+
+/* Data samples */
+
+OBJECT                  = TIME_SERIES
+  NAME                    = WFR_TIME_SERIES
+  INTERCHANGE_FORMAT      = BINARY
+  ROWS                    = 2615
+  COLUMNS                 = 1
+  ROW_BYTES               = 1024
+  ROW_PREFIX_BYTES        = 32
+  SAMPLING_PARAMETER_NAME = TIME
+  SAMPLING_PARAMETER_UNIT = SECOND
+  SAMPLING_PARAMETER_INTERVAL = 0.010000
+  DESCRIPTION             = "This time series consists of
+    uncalibrated samples gathered during a 24 hour time span from one
+    or more detectors.  Time interval between TIME_SERIES is
+    variable."
+
+  OBJECT                  = COLUMN
+    NAME                    = WFR_SAMPLE
+    DATA_TYPE               = MSB_UNSIGNED_INTEGER
+    START_BYTE              = 33
+    BYTES                   = 1024
+    ITEMS                   = 512
+    ITEM_BYTES              = 2
+    OFFSET                  = -2047.5
+    VALID_MINIMUM           = 0
+    VALID_MAXIMUM           = 4095
+    DESCRIPTION             = "The 16-bit unsigned uncalibrated
+      waveform samples range from 0 to 4095.  Zero
+      amplitude is nominally 2047.5 with 2047 being just
+      below and 2048 just above zero amplitude."
+  END_OBJECT              = COLUMN
+
+END_OBJECT              = TIME_SERIES
+
+END

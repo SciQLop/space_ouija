@@ -4,6 +4,7 @@ cassini_headers = files(
     'rpws.hpp',
     'RPWS_LOW_RATE_FULL_MFR0.hpp',
     'RPWS_WIDEBAND_FULL_WBRFR.hpp',
+    'RPWS_WAVEFORM_FULL.hpp',
     'cassini.hpp'
 )
 
