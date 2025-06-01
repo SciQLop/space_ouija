@@ -14,7 +14,7 @@ tests = [
         'deps': [space_ouija_dep, catch2_dep]
     },
     {
-      'name':'Cassini_manal_test',
+      'name':'Cassini_manual_test',
       'sources': ['Cassini/manual_test.cpp'],
       'deps': [space_ouija_dep]
     },

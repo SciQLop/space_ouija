@@ -12,6 +12,8 @@
 using namespace ouija_boards::cassini::rpws;
 int main()
 {
+    if (const char* env_p = std::getenv("GITHUB_ACTIONS"))
+        return 0;
     auto files = std::filesystem::directory_iterator("/home/jeandet/Downloads/");
     for (const auto& file : files)
     {
