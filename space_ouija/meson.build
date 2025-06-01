@@ -1,7 +1,8 @@
 space_ouija_python_sources = [
     '__init__.py',
     'ouija_boards/__init__.py',
-    'ouija_boards/cassini/__init__.py'
+    'ouija_boards/cassini/__init__.py',
+    'ouija_boards/messenger/__init__.py'
     ]
 
 fs = import('fs')
@@ -35,4 +36,4 @@ space_ouija_dep = declare_dependency(
 
 subdir('ouija_boards')
 
-python3.install_sources(files(space_ouija_python_sources), pure: false, subdir: 'space_ouija')
+python3.install_sources(files(space_ouija_python_sources), pure: false, subdir: 'space_ouija', preserve_path: true)

@@ -10,7 +10,7 @@ _messenger = python3.extension_module('_messenger', 'messenger.cpp',
                          include_directories : include_directories('.'),
                          link_args: link_args,
                          cpp_args: space_ouija_cpp_args+['-DSPACE_OUIJA_PYTHON_BINDINGS'],
-                         subdir: 'space_ouija',
+                         subdir: 'space_ouija/ouija_boards/messenger',
                          install: true,
                          extra_files: [messenger_headers]
 )

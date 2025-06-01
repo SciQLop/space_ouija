@@ -13,7 +13,7 @@ _cassini = python3.extension_module('_cassini', 'cassini.cpp',
                          include_directories : include_directories('.'),
                          link_args: link_args,
                          cpp_args: space_ouija_cpp_args+['-DSPACE_OUIJA_PYTHON_BINDINGS'],
-                         subdir: 'space_ouija',
+                         subdir: 'space_ouija/ouija_boards/cassini',
                          install: true,
                          extra_files: [cassini_headers]
 )
