@@ -41,7 +41,7 @@ namespace py = pybind11;
 namespace py = pybind11;
 using namespace ouija_boards::messenger::fips;
 
-PYBIND11_MODULE(_messenger, m)
+PYBIND11_MODULE(messenger, m)
 {
     m.doc() = R"pbdoc(
         _space_ouija

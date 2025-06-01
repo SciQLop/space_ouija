@@ -1,4 +1,4 @@
-from space_ouija.ouija_boards.cassini._cassini import load_RPWS_LOW_RATE_FULL_MFR0, SENSOR_NUMBER, load_RPWS_WBR_WFR, load_RPWS_WFR
+from space_ouija.ouija_boards.cassini import load_RPWS_LOW_RATE_FULL_MFR0, SENSOR_NUMBER, load_RPWS_WBR_WFR, load_RPWS_WFR
 import requests
 import os
 from tempfile import TemporaryDirectory

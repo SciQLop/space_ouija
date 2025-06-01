@@ -2,7 +2,8 @@ space_ouija_python_sources = [
     '__init__.py',
     'ouija_boards/__init__.py',
     'ouija_boards/cassini/__init__.py',
-    'ouija_boards/messenger/__init__.py'
+    'ouija_boards/messenger/__init__.py',
+    'ouija_boards/_binary_modules/__init__.py'
     ]
 
 fs = import('fs')

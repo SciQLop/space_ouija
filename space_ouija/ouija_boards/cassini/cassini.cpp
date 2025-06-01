@@ -43,7 +43,7 @@ namespace py = pybind11;
 namespace py = pybind11;
 using namespace ouija_boards::cassini::rpws;
 
-PYBIND11_MODULE(_cassini, m)
+PYBIND11_MODULE(cassini, m)
 {
     m.doc() = R"pbdoc(
         _space_ouija
