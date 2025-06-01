@@ -31,7 +31,7 @@ jobs:
           - os: ubuntu-24.04-arm
             arch: aarch64
           - os: windows-latest
-            arch: x86_64
+            arch: amd64
           - os: macos-13  # Intel
             arch: x86_64
           - os: macos-14 # Apple Silicon
@@ -39,7 +39,7 @@ jobs:
     env:
       CIBW_ENVIRONMENT: ${{ matrix.CIBW_ENVIRONMENT }}
       CIBW_SKIP: "*-win32 *i686"
-      CIBW_ARCHS: ${{ matrix.arch }}
+      CIBW_ARCH: ${{ matrix.arch }}
       CIBW_PRERELEASE_PYTHONS: "True"
       CIBW_BUILD_VERBOSITY: 3
       CIBW_MANYLINUX_X86_64_IMAGE: quay.io/pypa/manylinux_2_28_x86_64
