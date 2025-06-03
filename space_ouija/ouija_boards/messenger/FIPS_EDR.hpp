@@ -29,8 +29,16 @@
 #include <cpp_utils/reflexion/reflection.hpp>
 #include <cpp_utils/serde/serde.hpp>
 
+#include "load_from.hpp"
+
 namespace ouija_boards::messenger::fips
 {
+
+enum class FIPS_SCANTYPE
+{
+    Normal = 0,
+    HighTempScan = 1,
+};
 
 struct FIPS_EDR_BLOCK
 {
@@ -51,26 +59,30 @@ struct FIPS_EDR
     cpp_utils::serde::dynamic_array_until_eof<FIPS_EDR_BLOCK> rows;
 };
 
-
-inline auto load_FIPS_EDR(const std::string& path)
+inline auto load_FIPS_EDR(const auto& input)
 {
-    auto f = cpp_utils::io::memory_mapped_file(path);
-    return cpp_utils::serde::deserialize<FIPS_EDR>(f);
+    return load_from<FIPS_EDR>(input);
 }
+
 
 #ifdef SPACE_OUIJA_PYTHON_BINDINGS
 #include <pybind11/pybind11.h>
 
 #include "py_array.hpp"
+#include "py_load_from.hpp"
 #include <pybind11/numpy.h>
 #include <pybind11/stl.h>
 
-inline auto py_load_FIPS_EDR(const std::string& path)
+inline auto py_load_FIPS_EDR(const auto input)
 {
     namespace py = pybind11;
-    auto s = load_FIPS_EDR(path);
+    auto fips_edr_data = [&]()
+    {
+        py::gil_scoped_release release;
+        return load_FIPS_EDR(input);
+    }();
     py::dict d;
-    const auto row_count = std::size(s.rows);
+    const auto row_count = std::size(fips_edr_data.rows);
     {
         auto met = py_create_ndarray<uint32_t>(row_count);
         auto scan = py_create_ndarray<uint32_t>(row_count);
@@ -79,7 +91,7 @@ inline auto py_load_FIPS_EDR(const std::string& path)
         auto valid = py_create_ndarray<uint32_t>(row_count, 64);
         auto prog = py_create_ndarray<uint32_t>(row_count, 64);
         auto met2 = py_create_ndarray<uint32_t>(row_count, 64);
-        for_each_block(s.rows,
+        for_each_block(fips_edr_data.rows,
             [&, global_offset = 0ULL, row_index = 0UL](const auto& row) mutable
             {
                 copy_values(row.start, start, global_offset);
@@ -87,9 +99,10 @@ inline auto py_load_FIPS_EDR(const std::string& path)
                 copy_values(row.valid, valid, global_offset);
                 copy_values(row.prog, prog, global_offset);
                 copy_values(row.met2, met2, global_offset);
-                global_offset += 64;
                 met.mutable_data()[row_index] = row.met;
                 scan.mutable_data()[row_index] = row.scan;
+                global_offset += 64;
+                row_index++;
             });
         d["met"] = std::move(met);
         d["scan"] = std::move(scan);
@@ -104,7 +117,7 @@ inline auto py_load_FIPS_EDR(const std::string& path)
 
 inline void py_register_FIPS_EDR(py::module& m)
 {
-    m.def("load_FIPS_EDR", &py_load_FIPS_EDR);
+    REGISTER_LOADER("load_FIPS_EDR", m, py_load_FIPS_EDR);
 }
 
 #endif
