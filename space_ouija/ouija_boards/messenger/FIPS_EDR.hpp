@@ -37,19 +37,25 @@ namespace ouija_boards::messenger::fips
 enum class FIPS_SCANTYPE
 {
     Normal = 0,
-    HighTempScan = 1,
+    HighTemp = 1,
+    Burst = 2,
+    Test = 3,
+    Table4 = 4,
+    Table5 = 5,
+    Table6 = 6,
+    Table7 = 7
 };
 
 struct FIPS_EDR_BLOCK
 {
     using endianness = cpp_utils::endianness::big_endian_t;
     uint32_t met;
-    uint16_t scan;
-    cpp_utils::serde::static_array<uint32_t, 64> start;
-    cpp_utils::serde::static_array<uint32_t, 64> stop;
-    cpp_utils::serde::static_array<uint32_t, 64> valid;
-    cpp_utils::serde::static_array<uint32_t, 64> prog;
-    cpp_utils::serde::static_array<uint32_t, 64> met2;
+    uint16_t scantype;
+    cpp_utils::serde::static_array<uint32_t, 64> start_rate;
+    cpp_utils::serde::static_array<uint32_t, 64> stop_rate;
+    cpp_utils::serde::static_array<uint32_t, 64> valid_evt_rate;
+    cpp_utils::serde::static_array<uint32_t, 64> proton_rate;
+    cpp_utils::serde::static_array<uint32_t, 64> evt_proc_rate;
 };
 static_assert(cpp_utils::reflexion::composite_size<FIPS_EDR_BLOCK>() == 1286);
 
@@ -85,32 +91,32 @@ inline auto py_load_FIPS_EDR(const auto input)
     const auto row_count = std::size(fips_edr_data.rows);
     {
         auto met = py_create_ndarray<uint32_t>(row_count);
-        auto scan = py_create_ndarray<uint32_t>(row_count);
-        auto start = py_create_ndarray<uint32_t>(row_count, 64);
-        auto stop = py_create_ndarray<uint32_t>(row_count, 64);
-        auto valid = py_create_ndarray<uint32_t>(row_count, 64);
-        auto prog = py_create_ndarray<uint32_t>(row_count, 64);
-        auto met2 = py_create_ndarray<uint32_t>(row_count, 64);
+        auto scantype = py_create_ndarray<uint32_t>(row_count);
+        auto start_rate = py_create_ndarray<uint32_t>(row_count, 64);
+        auto stop_rate = py_create_ndarray<uint32_t>(row_count, 64);
+        auto valid_evt_rate = py_create_ndarray<uint32_t>(row_count, 64);
+        auto proton_rate = py_create_ndarray<uint32_t>(row_count, 64);
+        auto evt_proc_rate = py_create_ndarray<uint32_t>(row_count, 64);
         for_each_block(fips_edr_data.rows,
-            [&, global_offset = 0ULL, row_index = 0UL](const auto& row) mutable
+            [&, global_offset = 0ULL, row_index = 0UL](const FIPS_EDR_BLOCK& row) mutable
             {
-                copy_values(row.start, start, global_offset);
-                copy_values(row.stop, stop, global_offset);
-                copy_values(row.valid, valid, global_offset);
-                copy_values(row.prog, prog, global_offset);
-                copy_values(row.met2, met2, global_offset);
+                copy_values(row.start_rate, start_rate, global_offset);
+                copy_values(row.stop_rate, stop_rate, global_offset);
+                copy_values(row.valid_evt_rate, valid_evt_rate, global_offset);
+                copy_values(row.proton_rate, proton_rate, global_offset);
+                copy_values(row.evt_proc_rate, evt_proc_rate, global_offset);
                 met.mutable_data()[row_index] = row.met;
-                scan.mutable_data()[row_index] = row.scan;
+                scantype.mutable_data()[row_index] = row.scantype;
                 global_offset += 64;
                 row_index++;
             });
         d["met"] = std::move(met);
-        d["scan"] = std::move(scan);
-        d["start"] = std::move(start);
-        d["stop"] = std::move(stop);
-        d["valid"] = std::move(valid);
-        d["prog"] = std::move(prog);
-        d["met2"] = std::move(met2);
+        d["scantype"] = std::move(scantype);
+        d["start_rate"] = std::move(start_rate);
+        d["stop_rate"] = std::move(stop_rate);
+        d["valid_evt_rate"] = std::move(valid_evt_rate);
+        d["proton_rate"] = std::move(proton_rate);
+        d["evt_proc_rate"] = std::move(evt_proc_rate);
     }
     return d;
 }
